@@ -1,0 +1,101 @@
+SELECT *
+FROM survey
+LIMIT 10;
+
+SELECT question, Count(DISTINCT user_id)
+FROM survey
+GROUP BY 1;
+
+SELECT question, Count(DISTINCT user_id)
+FROM survey
+GROUP BY 1;
+
+SELECT *
+FROM quiz
+LIMIT 5;
+
+SELECT *
+FROM home_try_on
+LIMIT 5;
+
+SELECT *
+FROM purchase
+LIMIT 5;
+
+SELECT *
+FROM quiz AS 'q'
+LEFT JOIN home_try_on AS 'h' ON h.user_id = q.user_id
+LEFT JOIN purchase AS 'p' ON p.user_id = h.user_id
+LIMIT 5;
+
+SELECT DISTINCT q.user_id,
+  h.user_id IS NOT NULL AS 'is_home_try_on',
+  h.number_of_pairs,
+  p.user_id IS NOT NULL AS 'is_purchase'
+FROM quiz AS 'q'
+LEFT JOIN home_try_on AS ‘h’
+  ON h.user_id = q.user_id
+LEFT JOIN purchase AS ‘p’
+  ON p.user_id = h.user_id
+LIMIT 5;
+
+WITH FUNNEL AS (
+SELECT DISTINCT q.user_id,
+  h.user_id IS NOT NULL AS 'is_home_try_on',
+  h.number_of_pairs,
+  p.user_id IS NOT NULL AS 'is_purchase'
+FROM quiz AS 'q'
+LEFT JOIN home_try_on AS 'h' ON h.user_id = q.user_id
+LEFT JOIN purchase AS 'p' ON p.user_id = h.user_id
+  )
+SELECT
+SUM(CASE WHEN number_of_pairs = '3 pairs' THEN is_purchase end) AS 
+  'three_purchase',
+COUNT (DISTINCT CASE WHEN number_of_pairs = '3 pairs' THEN user_id END) AS 'three_pair',
+   SUM(CASE 
+    WHEN number_of_pairs = '5 pairs' THEN is_purchase end) AS 'five_purchase',
+  COUNT (DISTINCT CASE
+  	WHEN number_of_pairs = '5 pairs' THEN user_id END) AS 'five_pair'
+FROM FUNNEL;
+
+WITH FUNNEL AS (
+SELECT DISTINCT q.user_id,
+  h.user_id IS NOT NULL AS 'is_home_try_on',
+  h.number_of_pairs,
+  p.user_id IS NOT NULL AS 'is_purchase'
+FROM quiz AS 'q'
+LEFT JOIN home_try_on AS 'h' ON h.user_id = q.user_id
+LEFT JOIN purchase AS 'p' ON p.user_id = h.user_id
+  )
+SELECT COUNT(*) AS 'users', SUM(is_home_try_on) AS 'is_home_try_on', SUM(is_purchase) AS 'is_purchase’,
+  1.0 * SUM(is_home_try_on) / COUNT(*) AS 'home',
+  1.0 * SUM(is_purchase) / SUM(is_home_try_on) AS 'purchase'
+FROM FUNNEL;
+
+WITH FUNNEL AS (
+SELECT DISTINCT q.user_id,
+  h.user_id IS NOT NULL AS 'is_home_try_on',
+  h.number_of_pairs,
+  p.user_id IS NOT NULL AS 'is_purchase'
+FROM quiz AS 'q'
+LEFT JOIN home_try_on AS 'h' ON h.user_id = q.user_id
+LEFT JOIN purchase AS 'p' ON p.user_id = h.user_id
+  )
+SELECT Count(*), style, model_name, price
+FROM purchase
+GROUP BY 3
+ORDER BY 1 DESC;
+
+WITH FUNNEL AS (
+SELECT DISTINCT q.user_id,
+  h.user_id IS NOT NULL AS 'is_home_try_on',
+  h.number_of_pairs,
+  p.user_id IS NOT NULL AS 'is_purchase'
+FROM quiz AS 'q'
+LEFT JOIN home_try_on AS 'h' ON h.user_id = q.user_id
+LEFT JOIN purchase AS 'p' ON p.user_id = h.user_id
+  )
+SELECT Count(*), style
+FROM purchase
+GROUP BY 2
+ORDER BY 1 DESC;
